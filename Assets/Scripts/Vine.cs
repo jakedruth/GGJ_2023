@@ -9,46 +9,32 @@ public class Vine : MonoBehaviour
     [SerializeField] private int _totalNodes;
     public int TotalNodes { get { return _totalNodes; } }
 
-    [SerializeField] private float _nodeDistance;
+    [SerializeField] private float _vineLength;
+    [SerializeField] private float _vineLengthBuffer;
     [SerializeField] private Vector2 _gravity;
 
     private List<VerletNode> _nodes;
-    private List<VerletConnection> _connections;
+    private List<VerletSegment> _segments;
 
     [SerializeField] private float _moveSpeed;
 
     void Awake()
     {
         _nodes = new List<VerletNode>();
-        _connections = new List<VerletConnection>();
+        _segments = new List<VerletSegment>();
 
         Vector2 pos = transform.position;
+        float dist = (_vineLength + _vineLengthBuffer) / (_totalNodes - 1);
         for (int i = 0; i < _totalNodes; i++)
         {
-            _nodes.Add(new VerletNode(pos, i == 0));
-            pos.x += _nodeDistance;
+            _nodes.Add(new VerletNode(pos, i == 0 || i == _totalNodes - 1));
+            pos.x += dist;
 
             if (i > 0)
             {
-                _connections.Add(new VerletConnection(_nodes[i - 1], _nodes[i]));
+                _segments.Add(new VerletSegment(_nodes[i - 1], _nodes[i]));
             }
         }
-
-        // Create Extra little 
-        // int k = 0;
-        // while (k < _totalNodes - 1)
-        // {
-        //     int count = UnityEngine.Random.Range(2, 6);
-        //     VerletNode lastNode = _nodes[k];
-        //     for (int i = 0; i < count; i++)
-        //     {
-        //         VerletNode nextNode = new(lastNode.position + Vector2.down * _nodeDistance);
-        //         _nodes.Add(nextNode);
-        //         _connections.Add(new VerletConnection(lastNode, nextNode));
-        //         lastNode = nextNode;
-        //     }
-        //     k += UnityEngine.Random.Range(2, 5);
-        // }
     }
 
     void Update()
@@ -56,7 +42,6 @@ public class Vine : MonoBehaviour
         if (Input.GetMouseButton(0))
         {
             VerletNode end = _nodes[_totalNodes - 1];
-            //if (!end.locked)
             {
                 Vector2 target = Camera.main.ScreenToWorldPoint(Input.mousePosition);
                 end.position = Vector2.MoveTowards(end.position, target, _moveSpeed * Time.deltaTime);
@@ -84,33 +69,38 @@ public class Vine : MonoBehaviour
 
         for (int i = 0; i < _iterations; i++)
         {
-            for (int i1 = 0; i1 < _connections.Count; i1++)
+            for (int i1 = 0; i1 < _segments.Count; i1++)
             {
-                VerletConnection connection = _connections[i1];
+                VerletSegment connection = _segments[i1];
                 connection.Simulate();
             }
         }
     }
 
-    private void OnDrawGizmos()
+    public VerletNode GetNode(int index)
     {
-        if (!Application.isPlaying)
-        {
-            return;
-        }
-
-        for (int i = 0; i < _connections.Count - 1; i++)
-        {
-            if (i % 2 == 0)
-            {
-                Gizmos.color = Color.green;
-            }
-            else
-            {
-                Gizmos.color = Color.white;
-            }
-
-            Gizmos.DrawLine(_connections[i].nodeA.position, _connections[i].nodeB.position);
-        }
+        return _nodes[index];
     }
+
+    // private void OnDrawGizmos()
+    // {
+    //     if (!Application.isPlaying)
+    //     {
+    //         return;
+    //     }
+
+    //     for (int i = 0; i < _segments.Count; i++)
+    //     {
+    //         if (i % 2 == 0)
+    //         {
+    //             Gizmos.color = Color.green;
+    //         }
+    //         else
+    //         {
+    //             Gizmos.color = Color.white;
+    //         }
+
+    //         Gizmos.DrawLine(_segments[i].nodeA.position, _segments[i].nodeB.position);
+    //     }
+    // }
 }

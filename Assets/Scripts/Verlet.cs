@@ -32,13 +32,13 @@ public class VerletNode
     }
 }
 
-public class VerletConnection
+public class VerletSegment
 {
     public VerletNode nodeA;
     public VerletNode nodeB;
     public float length;
 
-    public VerletConnection(VerletNode a, VerletNode b)
+    public VerletSegment(VerletNode a, VerletNode b)
     {
         nodeA = a;
         nodeB = b;
