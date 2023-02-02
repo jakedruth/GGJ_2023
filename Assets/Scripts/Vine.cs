@@ -25,16 +25,22 @@ public class Vine : MonoBehaviour
 
         Vector2 pos = transform.position;
         float dist = (_vineLength + _vineLengthBuffer) / (_totalNodes - 1);
+        VerletPhysicsNode instance = Resources.Load<VerletPhysicsNode>("Prefab/VerletPhysicsNode");
         for (int i = 0; i < _totalNodes; i++)
         {
-            VerletPhysicsNode newNode = new VerletPhysicsNode();
-            newNode.isLocked = i == 0 || i == _totalNodes - 1;
+            VerletPhysicsNode newNode = Instantiate(instance, pos, Quaternion.identity, transform);
+            newNode.SetIsLocked(i == 0 || i == _totalNodes - 1);
             _nodes.Add(newNode);
             pos.x += dist;
 
             if (i > 0)
             {
-                _segments.Add(new VerletPhysicsSegment(_nodes[i - 1], _nodes[i]));
+                VerletPhysicsSegment segment = new(_nodes[i - 1], _nodes[i])
+                {
+                    targetLength = dist
+                };
+
+                _segments.Add(segment);
             }
         }
     }
