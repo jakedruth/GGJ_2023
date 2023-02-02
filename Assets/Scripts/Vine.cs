@@ -5,6 +5,14 @@ using UnityEngine;
 
 public class Vine : MonoBehaviour
 {
+    // Maximum number of colliders hitting the rope at once.
+    private const int MAX_ROPE_COLLISIONS = 32;
+    // Size of the collider buffer, also the maximum number of colliders that a single node can touch at once.
+    private const int COLLIDER_BUFFER_SIZE = 8;
+
+    private List<VerletNode> _nodes;
+    private List<VerletSegment> _segments;
+
     [SerializeField] private int _iterations;
     [SerializeField] private int _totalNodes;
     public int TotalNodes { get { return _totalNodes; } }
@@ -13,8 +21,8 @@ public class Vine : MonoBehaviour
     [SerializeField] private float _vineLengthBuffer;
     [SerializeField] private Vector2 _gravity;
 
-    private List<VerletNode> _nodes;
-    private List<VerletSegment> _segments;
+    private CollisionInfo[] _collisionInfos;
+    private int _numCollisions;
 
     [SerializeField] private float _moveSpeed;
 
@@ -27,12 +35,14 @@ public class Vine : MonoBehaviour
         float dist = (_vineLength + _vineLengthBuffer) / (_totalNodes - 1);
         for (int i = 0; i < _totalNodes; i++)
         {
-            _nodes.Add(new VerletNode(pos, i == 0 || i == _totalNodes - 1));
+            VerletNode node = new(pos, i == 0 || i == _totalNodes - 1);
+            _nodes.Add(node);
             pos.x += dist;
 
             if (i > 0)
             {
-                _segments.Add(new VerletSegment(_nodes[i - 1], _nodes[i]));
+                VerletSegment segment = new(_nodes[i - 1], _nodes[i]);
+                _segments.Add(segment);
             }
         }
     }
@@ -56,7 +66,13 @@ public class Vine : MonoBehaviour
 
     void FixedUpdate()
     {
+        SnapshotCollisions();
         Simulate();
+    }
+
+    private void SnapshotCollisions()
+    {
+
     }
 
     void Simulate()
@@ -69,12 +85,23 @@ public class Vine : MonoBehaviour
 
         for (int i = 0; i < _iterations; i++)
         {
-            for (int i1 = 0; i1 < _segments.Count; i1++)
-            {
-                VerletSegment connection = _segments[i1];
-                connection.Simulate();
-            }
+            ApplyConstraints();
+            AdjustCollisions();
         }
+    }
+
+    private void ApplyConstraints()
+    {
+        for (int i = 0; i < _segments.Count; i++)
+        {
+            VerletSegment connection = _segments[i];
+            connection.ApplyConstraints();
+        }
+    }
+
+    private void AdjustCollisions()
+    {
+
     }
 
     public VerletNode GetNode(int index)
@@ -82,6 +109,7 @@ public class Vine : MonoBehaviour
         return _nodes[index];
     }
 
+    #region Debug Gizmo
     // private void OnDrawGizmos()
     // {
     //     if (!Application.isPlaying)
@@ -103,4 +131,40 @@ public class Vine : MonoBehaviour
     //         Gizmos.DrawLine(_segments[i].nodeA.position, _segments[i].nodeB.position);
     //     }
     // }
+    #endregion
+}
+
+class CollisionInfo
+{
+    public enum ColliderType
+    {
+        CIRCLE,
+        BOX,
+        NONE
+    }
+
+    public int id;
+
+    public ColliderType type;
+    public Vector2 size;
+    public Vector2 position;
+    public Vector2 scale;
+    public Matrix4x4 wtl;
+    public Matrix4x4 ltw;
+    public int numCollisions;
+    public int[] CollidingNodes;
+
+    public CollisionInfo(int maxCollisions)
+    {
+        id = -1;
+        type = ColliderType.NONE;
+        size = Vector2.zero;
+        position = Vector2.zero;
+        scale = Vector2.zero;
+        wtl = Matrix4x4.zero;
+        ltw = Matrix4x4.zero;
+
+        numCollisions = 0;
+        CollidingNodes = new int[maxCollisions];
+    }
 }

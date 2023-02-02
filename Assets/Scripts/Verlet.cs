@@ -45,7 +45,7 @@ public class VerletSegment
         length = Vector2.Distance(a.position, b.position);
     }
 
-    public void Simulate()
+    public void ApplyConstraints()
     {
         Vector2 center = (nodeA.position + nodeB.position) / 2;
         Vector2 dir = (nodeA.position - nodeB.position).normalized;
