@@ -10,7 +10,7 @@ public class VineRenderer : MonoBehaviour
     private LineRenderer _lineRenderer;
 
     [SerializeField] private int _numLineSegments;
-    private List<VerletNode> _nodes;
+    private List<VerletPhysicsNode> _nodes;
 
     void Awake()
     {
@@ -23,7 +23,7 @@ public class VineRenderer : MonoBehaviour
 
     void Start()
     {
-        _nodes = new List<VerletNode>();
+        _nodes = new List<VerletPhysicsNode>();
         int space = _vine.TotalNodes / _numLineSegments;
         for (int i = 0; i < _vine.TotalNodes; i += space)
         {
@@ -45,7 +45,7 @@ public class VineRenderer : MonoBehaviour
         Vector3[] positions = new Vector3[_nodes.Count];
         for (int i = 0; i < _nodes.Count; i++)
         {
-            positions[i] = _nodes[i].position;
+            positions[i] = _nodes[i].transform.position;
         }
         _lineRenderer.positionCount = _nodes.Count;
         _lineRenderer.SetPositions(positions);

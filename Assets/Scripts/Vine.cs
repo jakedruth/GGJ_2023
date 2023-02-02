@@ -13,26 +13,28 @@ public class Vine : MonoBehaviour
     [SerializeField] private float _vineLengthBuffer;
     [SerializeField] private Vector2 _gravity;
 
-    private List<VerletNode> _nodes;
-    private List<VerletSegment> _segments;
+    private List<VerletPhysicsNode> _nodes;
+    private List<VerletPhysicsSegment> _segments;
 
     [SerializeField] private float _moveSpeed;
 
     void Awake()
     {
-        _nodes = new List<VerletNode>();
-        _segments = new List<VerletSegment>();
+        _nodes = new List<VerletPhysicsNode>();
+        _segments = new List<VerletPhysicsSegment>();
 
         Vector2 pos = transform.position;
         float dist = (_vineLength + _vineLengthBuffer) / (_totalNodes - 1);
         for (int i = 0; i < _totalNodes; i++)
         {
-            _nodes.Add(new VerletNode(pos, i == 0 || i == _totalNodes - 1));
+            VerletPhysicsNode newNode = new VerletPhysicsNode();
+            newNode.isLocked = i == 0 || i == _totalNodes - 1;
+            _nodes.Add(newNode);
             pos.x += dist;
 
             if (i > 0)
             {
-                _segments.Add(new VerletSegment(_nodes[i - 1], _nodes[i]));
+                _segments.Add(new VerletPhysicsSegment(_nodes[i - 1], _nodes[i]));
             }
         }
     }
@@ -41,10 +43,10 @@ public class Vine : MonoBehaviour
     {
         if (Input.GetMouseButton(0))
         {
-            VerletNode end = _nodes[_totalNodes - 1];
+            VerletPhysicsNode end = _nodes[_totalNodes - 1];
             {
                 Vector2 target = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-                end.position = Vector2.MoveTowards(end.position, target, _moveSpeed * Time.deltaTime);
+                end.transform.position = Vector2.MoveTowards(end.transform.position, target, _moveSpeed * Time.deltaTime);
             }
         }
 
@@ -63,7 +65,7 @@ public class Vine : MonoBehaviour
     {
         for (int i = 0; i < _nodes.Count; i++)
         {
-            VerletNode node = _nodes[i];
+            VerletPhysicsNode node = _nodes[i];
             node.Simulate(_gravity, Time.fixedDeltaTime);
         }
 
@@ -71,13 +73,13 @@ public class Vine : MonoBehaviour
         {
             for (int i1 = 0; i1 < _segments.Count; i1++)
             {
-                VerletSegment connection = _segments[i1];
+                VerletPhysicsSegment connection = _segments[i1];
                 connection.Simulate();
             }
         }
     }
 
-    public VerletNode GetNode(int index)
+    public VerletPhysicsNode GetNode(int index)
     {
         return _nodes[index];
     }
