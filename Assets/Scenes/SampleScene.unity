@@ -253,7 +253,7 @@ GameObject:
   - component: {fileID: 563364525}
   - component: {fileID: 563364522}
   - component: {fileID: 563364524}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Vine
   m_TagString: Untagged
   m_Icon: {fileID: 0}
