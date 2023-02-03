@@ -29,7 +29,7 @@ public class Vine : MonoBehaviour
     private int _numCollisions;
     private Collider2D[] _colliderBuffer;
 
-    public Transform _vineTip;
+    public Transform vineTip;
     [SerializeField] private float _moveSpeed;
 
     protected void Awake()
@@ -65,19 +65,18 @@ public class Vine : MonoBehaviour
     {
         //if (Input.GetMouseButton(0))
         {
-            if (_vineTip != null)
+            if (vineTip != null)
             {
                 VerletNode end = _nodes[_totalNodes - 1];
-                //Vector2 target = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-                Vector2 target = _vineTip.position;
+                Vector2 target = vineTip.position;
                 end.position = Vector2.MoveTowards(end.position, target, _moveSpeed * Time.deltaTime);
             }
         }
 
-        if (Input.GetMouseButtonDown(1))
-        {
-            _nodes[_totalNodes - 1].ToggleLock();
-        }
+        // if (Input.GetMouseButtonDown(1))
+        // {
+        //     _nodes[_totalNodes - 1].ToggleLock();
+        // }
     }
 
     protected void FixedUpdate()
