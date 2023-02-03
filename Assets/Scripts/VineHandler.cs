@@ -6,11 +6,7 @@ public class VineHandler : MonoBehaviour
 {
     [SerializeField] private Vine _vine;
     private Transform _vineTip;
-
-    void Awake()
-    {
-
-    }
+    [SerializeField] private float _vineTipSpeed;
 
     void Start()
     {
@@ -22,14 +18,8 @@ public class VineHandler : MonoBehaviour
         if (Input.GetMouseButtonDown(0))
         {
             Vector2 target = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            List<Vector2> path;
-            if (LevelHandler.instance.GetPath(_vine.transform.position, target, out path))
-            {
-                for (int i = 0; i < path.Count - 1; i++)
-                {
-                    Debug.DrawLine(path[i], path[i + 1], Color.red, 0.5f, false);
-                }
-            }
+            StopAllCoroutines();
+            StartCoroutine(FollowPath(target));
         }
         //StartCoroutine(FollowPath(Camera.main.ScreenToWorldPoint(Input.mousePosition)));
     }
@@ -37,11 +27,38 @@ public class VineHandler : MonoBehaviour
     IEnumerator FollowPath(Vector2 target)
     {
         // Get Path
-        List<Vector2> path;
-        if (LevelHandler.instance.GetPath(_vine.transform.position, target, out path))
+        if (LevelHandler.instance.GetPath(_vine.transform.position, target, out List<Vector2> pathFromBase))
         {
-            int i = 0;
-            Debug.Log(path.Count);
+            // Check to see if the path is short enough
+            float pathLength = Vector2.Distance(transform.position, pathFromBase[0]);
+            for (int i = 1; i < pathFromBase.Count; i++)
+            {
+                pathLength += Vector2.Distance(pathFromBase[i - 1], pathFromBase[i]);
+            }
+
+            if (pathLength > _vine.LengthBuffer)
+                yield break;
+
+            if (LevelHandler.instance.GetPath(_vineTip.transform.position, target, out List<Vector2> path))
+            {
+                int index = 0;
+                while (index < path.Count)
+                {
+                    Vector3 moveTo = path[index];
+                    Vector2 delta = _vineTip.position - moveTo;
+                    if (delta.sqrMagnitude >= 0.001)
+                    {
+                        _vineTip.position = Vector2.MoveTowards(_vineTip.position, moveTo, _vineTipSpeed * Time.deltaTime);
+                    }
+                    else
+                    {
+                        _vineTip.position = moveTo;
+                        index++;
+                    }
+
+                    yield return null;
+                }
+            }
         }
         else
         {

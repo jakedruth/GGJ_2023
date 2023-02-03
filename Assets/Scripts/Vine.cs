@@ -20,8 +20,10 @@ public class Vine : MonoBehaviour
     [SerializeField] private int _totalNodes;
     public int TotalNodes { get { return _totalNodes; } }
 
-    [SerializeField] private float _vineLength;
-    [SerializeField] private float _vineLengthBuffer;
+    [SerializeField] private float _targetLength;
+    public float Length { get { return _targetLength; } }
+    [SerializeField] private float _lengthBuffer;
+    public float LengthBuffer { get { return _targetLength + _lengthBuffer; } }
     [SerializeField] private Vector2 _gravity;
 
     [SerializeField] private float _collisionRadius;
@@ -38,7 +40,7 @@ public class Vine : MonoBehaviour
         _segments = new List<VerletSegment>();
 
         Vector2 pos = transform.position;
-        float dist = (_vineLength + _vineLengthBuffer) / (_totalNodes - 1);
+        float dist = (_targetLength + _lengthBuffer) / (_totalNodes - 1);
         for (int i = 0; i < _totalNodes; i++)
         {
             VerletNode node = new(pos, i == 0 || i == _totalNodes - 1);
@@ -73,10 +75,10 @@ public class Vine : MonoBehaviour
             }
         }
 
-        // if (Input.GetMouseButtonDown(1))
-        // {
-        //     _nodes[_totalNodes - 1].ToggleLock();
-        // }
+        if (Input.GetMouseButtonDown(1))
+        {
+            Debug.Log(CalculateActualLength());
+        }
     }
 
     protected void FixedUpdate()
@@ -261,12 +263,11 @@ public class Vine : MonoBehaviour
         return _nodes[index];
     }
 
-    public float GetVineLength()
+    private float CalculateActualLength()
     {
         float length = 0;
-        for (int i = 0; i < _segments.Count; i++)
+        foreach (VerletSegment segment in _segments)
         {
-            VerletSegment segment = _segments[i];
             length += segment.GetLength();
         }
         return length;
