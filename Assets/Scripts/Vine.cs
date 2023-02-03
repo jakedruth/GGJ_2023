@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+// Implemented based on the resources at:
 // https://github.com/Toqozz/blog-code/blob/master/rope/Assets/Rope.cs
 
 public class Vine : MonoBehaviour
@@ -28,9 +29,10 @@ public class Vine : MonoBehaviour
     private int _numCollisions;
     private Collider2D[] _colliderBuffer;
 
+    public Transform _vineTip;
     [SerializeField] private float _moveSpeed;
 
-    void Awake()
+    protected void Awake()
     {
         _nodes = new List<VerletNode>();
         _segments = new List<VerletSegment>();
@@ -59,14 +61,15 @@ public class Vine : MonoBehaviour
         _colliderBuffer = new Collider2D[COLLIDER_BUFFER_SIZE];
     }
 
-    void Update()
+    protected void Update()
     {
-        if (Input.GetMouseButton(0))
+        //if (Input.GetMouseButton(0))
         {
-            if (GetVineLength() < _vineLength + _vineLengthBuffer)
+            if (_vineTip != null)
             {
                 VerletNode end = _nodes[_totalNodes - 1];
-                Vector2 target = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+                //Vector2 target = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+                Vector2 target = _vineTip.position;
                 end.position = Vector2.MoveTowards(end.position, target, _moveSpeed * Time.deltaTime);
             }
         }
@@ -77,7 +80,7 @@ public class Vine : MonoBehaviour
         }
     }
 
-    void FixedUpdate()
+    protected void FixedUpdate()
     {
         SnapshotCollisions();
         UpdateRope();
