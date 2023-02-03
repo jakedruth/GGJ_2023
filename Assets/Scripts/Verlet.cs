@@ -36,13 +36,13 @@ public class VerletSegment
 {
     public VerletNode nodeA;
     public VerletNode nodeB;
-    public float length;
+    public float targetLength;
 
     public VerletSegment(VerletNode a, VerletNode b)
     {
         nodeA = a;
         nodeB = b;
-        length = Vector2.Distance(a.position, b.position);
+        targetLength = Vector2.Distance(a.position, b.position);
     }
 
     public void ApplyConstraints()
@@ -51,9 +51,14 @@ public class VerletSegment
         Vector2 dir = (nodeA.position - nodeB.position).normalized;
 
         if (!nodeA.locked)
-            nodeA.position = center + dir * length / 2;
+            nodeA.position = center + dir * targetLength / 2;
         if (!nodeB.locked)
-            nodeB.position = center - dir * length / 2;
+            nodeB.position = center - dir * targetLength / 2;
+    }
+
+    public float GetLength()
+    {
+        return Vector2.Distance(nodeA.position, nodeB.position);
     }
 }
 
