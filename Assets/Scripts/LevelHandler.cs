@@ -8,13 +8,14 @@ public class LevelHandler : MonoBehaviour
     public static LevelHandler instance;
     private Pathfinder<Vector2> _pathfinder;
     [SerializeField] private float _gridSize;
+    public float GridSize { get { return _gridSize; } }
 
     void Awake()
     {
         if (instance == null)
             instance = this;
 
-        _pathfinder = new Pathfinder<Vector2>(Vector2.Distance, GetNeighbors, 100);
+        _pathfinder = new Pathfinder<Vector2>(CalculateHeuristicDistance, GetNeighbors, 100);
     }
 
     public bool GetPath(Vector2 start, Vector2 end, out List<Vector2> path)
@@ -22,9 +23,14 @@ public class LevelHandler : MonoBehaviour
         return _pathfinder.GenerateAstarPath(GetPointOnGrid(start), GetPointOnGrid(end), out path);
     }
 
-    private Vector2 GetPointOnGrid(Vector2 target)
+    public Vector2 GetPointOnGrid(Vector2 target)
     {
         return new Vector2(Mathf.Round(target.x / _gridSize) * _gridSize, Mathf.Round(target.y / _gridSize) * _gridSize);
+    }
+
+    private float CalculateHeuristicDistance(Vector2 A, Vector2 B)
+    {
+        return (A - B).sqrMagnitude;
     }
 
     private Dictionary<Vector2, float> GetNeighbors(Vector2 point)

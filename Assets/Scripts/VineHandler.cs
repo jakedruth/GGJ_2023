@@ -2,43 +2,68 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+[RequireComponent(typeof(Vine))]
 public class VineHandler : MonoBehaviour
 {
-    [SerializeField] private Vine _vine;
+    private Vine _vine;
     private Transform _vineTip;
+    private Vector2 _targetPos;
     [SerializeField] private float _vineTipSpeed;
+
+    void Awake()
+    {
+        _vine = GetComponent<Vine>();
+    }
 
     void Start()
     {
+
         _vineTip = _vine.vineTip;
     }
 
     void Update()
     {
-        if (Input.GetMouseButtonDown(0))
+        Vector2 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        Vector2 newTarget = LevelHandler.instance.GetPointOnGrid(mousePos);
+        if ((newTarget - _targetPos).sqrMagnitude >= LevelHandler.instance.GridSize * LevelHandler.instance.GridSize)
         {
-            Vector2 target = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            _targetPos = newTarget;
             StopAllCoroutines();
-            StartCoroutine(FollowPath(target));
+            StartCoroutine(FollowPath(_targetPos));
         }
+
+        // if (Input.GetMouseButtonDown(0))
+        // {
+        //     Vector2 target = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+        //     StopAllCoroutines();
+        //     StartCoroutine(FollowPath(target));
+        // }
         //StartCoroutine(FollowPath(Camera.main.ScreenToWorldPoint(Input.mousePosition)));
     }
 
     IEnumerator FollowPath(Vector2 target)
     {
         // Get Path
-        if (LevelHandler.instance.GetPath(_vine.transform.position, target, out List<Vector2> pathFromBase))
+        if (LevelHandler.instance.GetPath(transform.position, target, out List<Vector2> pathFromBase))
         {
-            // Check to see if the path is short enough
+            if (pathFromBase.Count == 0)
+                yield break;
+
+            // Calculate the path length
             float pathLength = Vector2.Distance(transform.position, pathFromBase[0]);
-            for (int i = 1; i < pathFromBase.Count; i++)
+            if (pathFromBase.Count > 1)
             {
-                pathLength += Vector2.Distance(pathFromBase[i - 1], pathFromBase[i]);
+                for (int i = 1; i < pathFromBase.Count; i++)
+                {
+                    pathLength += Vector2.Distance(pathFromBase[i - 1], pathFromBase[i]);
+                }
             }
 
+            // Check to see if the path is short enough
             if (pathLength > _vine.LengthBuffer)
                 yield break;
 
+            // If the path is shorter than the vine's desired length, path find to new target point
             if (LevelHandler.instance.GetPath(_vineTip.transform.position, target, out List<Vector2> path))
             {
                 int index = 0;

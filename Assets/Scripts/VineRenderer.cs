@@ -9,27 +9,31 @@ public class VineRenderer : MonoBehaviour
     private Vine _vine;
     private LineRenderer _lineRenderer;
 
-    [SerializeField] private int _numLineSegments;
+    [SerializeField] private int _vineSegmentIndexSpacing;
     private List<VerletNode> _nodes;
 
     void Awake()
     {
         _vine = GetComponent<Vine>();
         _lineRenderer = GetComponent<LineRenderer>();
-
-        if (_vine.TotalNodes % _numLineSegments > 0)
-            Debug.LogWarning("Number of line segments does not divide evenly into the total number of nodes in the vine");
     }
 
     void Start()
     {
         _nodes = new List<VerletNode>();
-        int space = _vine.TotalNodes / _numLineSegments;
-        for (int i = 0; i < _vine.TotalNodes; i += space)
+
+        for (int i = _vine.TotalNodes - 1; i > 0; i -= _vineSegmentIndexSpacing)
         {
-            _nodes.Add(_vine.GetNode(i));
+            _nodes.Insert(0, _vine.GetNode(i));
         }
-        _nodes.Add(_vine.GetNode(_vine.TotalNodes - 1));
+        _nodes.Insert(0, _vine.GetNode(0));
+
+        // int space = _vine.TotalNodes / _numLineSegments;
+        // for (int i = 0; i < _vine.TotalNodes; i += space)
+        // {
+        //     _nodes.Add(_vine.GetNode(i));
+        // }
+        // _nodes.Add(_vine.GetNode(_vine.TotalNodes - 1));
 
         UpdateLineRenderer();
     }
@@ -49,6 +53,12 @@ public class VineRenderer : MonoBehaviour
         }
         _lineRenderer.positionCount = _nodes.Count;
         _lineRenderer.SetPositions(positions);
+    }
+
+    protected void OnValidate()
+    {
+        if (_vineSegmentIndexSpacing < 1)
+            _vineSegmentIndexSpacing = 1;
     }
 
     // private void OnDrawGizmos()
